@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "started_at": "2026-08-08T08:55:49Z",
+    "resolved_at": null,
+    "status": "degraded",
+    "note": "Automatically detected -- investigating."
+  }
+]

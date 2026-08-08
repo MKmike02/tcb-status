@@ -1,5 +1,5 @@
 {
-  "status": "healthy",
-  "checked_at": "2026-08-06T00:00:00Z",
+  "status": "degraded",
+  "checked_at": "2026-08-08T08:55:49Z",
   "http_code": 200
 }
