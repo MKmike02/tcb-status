@@ -7,13 +7,16 @@
 <meta name="description" content="Live status for The Cloud Bakery platform." />
 <style>
   :root {
-    --bg: #FAFAF8;
+    --bg: #F4F5F2;
+    --grain-opacity: 0.035;
     --card: #FFFFFF;
-    --ink: #1C1F1A;
-    --ink-soft: #5A6156;
-    --line: #E4E6E0;
-    --ok: #1F7A4D;
-    --ok-bg: #E5F3EA;
+    --ink: #1B2B37;
+    --ink-soft: #647684;
+    --line: #E1E5E2;
+    --accent: #0F766E;
+    --accent-soft: #DCF4EE;
+    --ok: #0F766E;
+    --ok-bg: #DCF4EE;
     --warn: #A6650C;
     --warn-bg: #FBF0DD;
     --down: #B0332A;
@@ -21,13 +24,16 @@
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #14160F;
-      --card: #1D2018;
-      --ink: #ECEEE8;
-      --ink-soft: #A6AC9E;
-      --line: #2E3227;
-      --ok: #6FCB98;
-      --ok-bg: #16281E;
+      --bg: #17232C;
+      --grain-opacity: 0.05;
+      --card: #1F2F3A;
+      --ink: #F4F5F2;
+      --ink-soft: #93A5AF;
+      --line: #2C3F49;
+      --accent: #5EEAD4;
+      --accent-soft: #143832;
+      --ok: #5EEAD4;
+      --ok-bg: #143832;
       --warn: #E4A93F;
       --warn-bg: #2E230F;
       --down: #E58179;
@@ -37,15 +43,25 @@
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
+    background-color: var(--bg);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-blend-mode: overlay;
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
     line-height: 1.55;
   }
   .wrap { max-width: 680px; margin: 0 auto; padding: 56px 20px 80px; }
+
   header { margin-bottom: 32px; }
-  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .brand svg { width: 34px; height: 34px; flex-shrink: 0; }
+  .brand-name { font-size: 15px; font-weight: 600; letter-spacing: .02em; color: var(--ink-soft); }
+  .brand-name b { color: var(--ink); font-weight: 700; }
+  .brand-name em { color: var(--accent); font-style: normal; font-weight: 700; }
+
+  h1 { font-size: 24px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; }
   .sub { color: var(--ink-soft); font-size: 14px; margin: 0; }
+  .rule { height: 3px; width: 44px; background: var(--accent); border-radius: 2px; margin: 18px 0 0; }
 
   .status-card {
     display: flex;
@@ -55,17 +71,18 @@
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 22px 24px;
-    margin-bottom: 28px;
+    margin: 28px 0;
+    box-shadow: 0 1px 2px rgba(27, 43, 55, 0.04);
   }
-  .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
-  .dot.healthy { background: var(--ok); }
-  .dot.degraded { background: var(--warn); }
-  .dot.down, .dot.unhealthy { background: var(--down); }
+  .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 4px transparent; }
+  .dot.healthy { background: var(--ok); box-shadow: 0 0 0 4px var(--ok-bg); }
+  .dot.degraded { background: var(--warn); box-shadow: 0 0 0 4px var(--warn-bg); }
+  .dot.down, .dot.unhealthy { background: var(--down); box-shadow: 0 0 0 4px var(--down-bg); }
   .dot.unknown { background: var(--ink-soft); }
   .status-text { font-size: 17px; font-weight: 600; }
-  .status-meta { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+  .status-meta { font-size: 13px; color: var(--ink-soft); margin-top: 2px; font-variant-numeric: tabular-nums; }
 
-  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); margin: 0 0 12px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); margin: 0 0 12px; font-weight: 700; }
   .incidents { display: flex; flex-direction: column; gap: 10px; }
   .incident {
     background: var(--card);
@@ -78,19 +95,33 @@
   .incident.down, .incident.unhealthy { border-left-color: var(--down); }
   .incident.degraded { border-left-color: var(--warn); }
   .incident-status { font-weight: 600; }
-  .incident-time { color: var(--ink-soft); font-size: 12.5px; margin-top: 2px; }
+  .incident-time { color: var(--ink-soft); font-size: 12.5px; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .incident-note { margin-top: 6px; color: var(--ink-soft); }
   .empty { color: var(--ink-soft); font-size: 14px; }
 
-  footer { margin-top: 48px; font-size: 12.5px; color: var(--ink-soft); }
-  footer a { color: inherit; }
+  footer { margin-top: 48px; font-size: 12.5px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 20px; }
+  footer a { color: var(--accent); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>The Cloud Bakery — Status</h1>
+    <div class="brand">
+      <svg viewBox="0 0 500 500" aria-hidden="true">
+        <path fill="#1B2B37" d="m370.55176,373.59019c4.50229,-3.46763 8.51382,-7.27526 12.0347,-11.42303 3.73701,-4.39114 7.6079,-10.64285 11.74641,-15.3341 3.9395,-4.46117 6.19751,-7.11184 6.77403,-7.95207 6.39654,-9.24915 10.69293,-17.75474 12.88916,-25.51677 4.26209,-15.05067 4.81458,-30.11802 1.65749,-45.20204 -5.3945,-25.81682 -26.62251,-49.40311 -53.88333,-55.22463 -6.27987,-1.34036 -12.35042,-1.97385 -18.21161,-1.9005 -4.54344,0.0533 -8.66828,0.0151 -12.37443,-0.11002 -0.66174,-0.0189 -1.19324,-0.53264 -1.21479,-1.17034 -0.90595,-25.26669 -12.73472,-49.7832 -33.99365,-64.81721 -9.47127,-6.69508 -20.01322,-11.04958 -31.62581,-13.06343 -22.81343,-3.94106 -45.56509,1.93048 -63.25167,15.94419 -10.28456,8.14219 -18.72636,17.91477 -24.42971,30.05799 -4.63957,9.8626 -7.1721,20.25873 -7.59761,31.18829 -0.0213,0.57142 -0.49773,1.02985 -1.09125,1.05026 -6.29016,0.22004 -14.99962,-0.17994 -21.61922,0.6602 -21.95896,2.79074 -40.62353,14.96399 -52.472939,33.23879 -9.704627,14.9573 -13.671581,31.97517 -11.900866,51.05359 0.974583,10.44276 3.89489,20.36536 8.760931,29.7679 7.422591,14.34381 22.442824,28.40752 38.832244,33.34882 0.77144,0.2325 1.29727,0.92575 1.29716,1.71044v14.29382c-0.004,0.29112 -0.26986,0.51255 -0.56624,0.47011 -2.73841,-0.38674 -5.3293,-0.96358 -7.7726,-1.73045 -16.60562,-5.2114 -30.95668,-15.82421 -41.282429,-29.96792 -10.157598,-13.92371 -15.974198,-29.40117 -17.449794,-46.43234 -1.255976,-14.51388 -0.04115,-29.12775 5.22979,-43.38151 8.977122,-24.2598 25.740591,-42.25453 50.290433,-53.98433 0.93341,-0.44678 4.13167,-1.61377 9.59479,-3.50094 7.35056,-2.53066 17.11008,-3.35089 23.0708,-3.97106 0.75155,-0.0779 1.35563,-0.64033 1.47217,-1.37036 0.3912,-2.6007 0.9746,-5.13467 1.75014,-7.60201 7.11032,-22.73935 21.06673,-40.84083 41.8692,-54.30441 16.18353,-10.47279 36.06294,-15.68418 55.10843,-16.18429 2.16193,-0.0602 6.58527,0.39009 13.27007,1.35036 25.97395,3.741 48.22114,17.47464 63.35461,38.18012 8.83987,12.09656 14.64616,25.21 17.41891,39.34043 0.14319,0.75412 0.80834,1.31354 1.606,1.35035 18.91511,0.7402 35.87071,6.72513 50.86691,17.95477 11.74989,8.79567 20.76819,19.52852 27.0549,32.19855 13.34216,26.89383 14.42654,54.36778 3.25319,82.4219 -9.44042,23.70628 -29.98895,43.09143 -56.03495,49.103 -0.81672,0.19358 -1.59228,0.19017 -2.32663,-0.0113 -0.23967,-0.0654 -0.29882,-0.37048 -0.1031,-0.53014z"/>
+        <g transform="matrix(2.1138119,0,0,2.1539708,-277.58592,-82.016647)">
+          <path fill="#0F766E" d="m249.57,116.39q0.3,0 0.42,0.11c10.39,10.13 11.81,25.52 0.83,36.06q-0.86,0.83 -1.56,0.82q-0.7,-0.01 -1.54,-0.84c-10.81,-10.73 -9.13,-26.09 1.43,-36.04q0.12,-0.12 0.42,-0.11z"/>
+          <path fill="#0F766E" d="m240.31,158.1q7.42,9.23 7.81,22.75a0.57,0.56 -86.4 0 1 -0.65,0.58c-8.53,-1.27 -15.62,-5.44 -21.03,-12.19 -5.42,-6.74 -7.96,-14.56 -7.36,-23.17a0.57,0.56 8.9 0 1 0.7,-0.51q13.12,3.31 20.53,12.54z"/>
+          <path fill="#0F766E" d="m250.26,181.28a0.37,0.37 0 0 1 -0.4,-0.39q1.22,-17.01 13.98,-27.8 6.86,-5.81 15.53,-7.01a0.7,0.7 0 0 1 0.8,0.68c0.35,12.41 -5.2,23.4 -15.9,29.87q-6.66,4.03 -14.01,4.65z"/>
+          <path fill="#0F766E" d="m219.11,182.04a0.39,0.39 0 0 1 0.42,-0.38q7.03,0.51 12.58,3.73c9.93,5.73 15.53,18.4 16.44,29.67a0.63,0.63 0 0 1 -0.7,0.69c-17.63,-1.74 -29.4,-16.29 -28.74,-33.71z"/>
+          <path fill="#0F766E" d="m279.97,182.39c0.38,17.49 -11.66,31.91 -29.37,33.37a0.64,0.64 0 0 1 -0.69,-0.7c1.09,-11.29 6.91,-23.92 16.96,-29.51q5.62,-3.14 12.68,-3.54a0.39,0.39 0 0 1 0.42,0.38z"/>
+        </g>
+      </svg>
+      <span class="brand-name"><b>THE</b> <em>CLOUD</em> <b>BAKERY</b></span>
+    </div>
+    <h1>Platform status</h1>
     <p class="sub">Automated checks every 5 minutes against the live platform.</p>
+    <div class="rule"></div>
   </header>
 
   <div class="status-card">
