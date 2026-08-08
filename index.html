@@ -45,7 +45,7 @@
     }
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   body {
     margin: 0;
     background: var(--bg);
@@ -105,8 +105,8 @@
     border: 1px solid var(--line);
     border-radius: 14px;
     padding: 26px 26px;
-    margin: -30px 0 36px;
-    box-shadow: 0 12px 32px -12px rgba(19, 30, 38, 0.28), 0 1px 2px rgba(19, 30, 38, 0.06);
+    margin: 36px 0;
+    box-shadow: 0 12px 32px -14px rgba(19, 30, 38, 0.22), 0 1px 2px rgba(19, 30, 38, 0.06);
     border-left: 5px solid var(--ink-soft);
   }
   .status-card.healthy { border-left-color: var(--ok); }
@@ -150,7 +150,7 @@
 
   @media (max-width: 480px) {
     h1 { font-size: 26px; }
-    .status-card { margin-top: -22px; padding: 20px; }
+    .status-card { padding: 20px; }
   }
 </style>
 </head>
