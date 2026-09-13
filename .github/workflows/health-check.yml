@@ -1,8 +1,16 @@
 name: Health Check
 
 on:
+  # The PRIMARY trigger is an external 5-minute pinger that calls this
+  # workflow's workflow_dispatch REST endpoint. GitHub's own `schedule` is
+  # best-effort and silently drops high-frequency crons on low-traffic public
+  # repos -- this workflow logged zero schedule-triggered runs across its first
+  # five weeks while `*/5` was set. The cron below stays only as a coarse
+  # backup, relaxed to every 15 minutes because that interval is dropped less
+  # often than `*/5`. Do not rely on it for the 5-minute cadence; the pinger
+  # provides that.
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch: {}
 
 permissions:
@@ -46,18 +54,38 @@ jobs:
           HTTP_CODE="${{ steps.probe.outputs.http_code }}"
           NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-          PREV_STATUS=$(jq -r '.status // "healthy"' status.json 2>/dev/null || echo "healthy")
-
-          jq -n --arg status "$STATUS" --arg checked_at "$NOW" --argjson http_code "$HTTP_CODE" \
-            '{status: $status, checked_at: $checked_at, http_code: $http_code}' > status.json
-
+          if [ ! -f status.json ]; then echo '{"status":"healthy","consecutive_unhealthy":0}' > status.json; fi
           if [ ! -f incidents.json ]; then echo "[]" > incidents.json; fi
 
-          if [ "$STATUS" != "healthy" ] && [ "$PREV_STATUS" = "healthy" ]; then
+          # A running count of back-to-back non-healthy checks. One transient
+          # blip must not be able to post an incident, because an incident that
+          # opens on a single bad reading then stays open until a human resolves
+          # it -- exactly what left a 36-day "degraded" banner after one lone
+          # degraded reading on 2026-08-08 that never got a healthy follow-up
+          # (the `schedule` cron was dropping every run, so nothing re-checked).
+          PREV_STREAK=$(jq -r '.consecutive_unhealthy // 0' status.json 2>/dev/null || echo 0)
+          if [ "$STATUS" = "healthy" ]; then
+            STREAK=0
+          else
+            STREAK=$((PREV_STREAK + 1))
+          fi
+
+          jq -n --arg status "$STATUS" --arg checked_at "$NOW" \
+            --argjson http_code "$HTTP_CODE" --argjson streak "$STREAK" \
+            '{status: $status, checked_at: $checked_at, http_code: $http_code, consecutive_unhealthy: $streak}' > status.json
+
+          # Is an incident already open (top entry unresolved)?
+          OPEN=$(jq -r 'if (length > 0 and .[0].resolved_at == null) then "yes" else "no" end' incidents.json)
+
+          # Open only once TWO consecutive checks are non-healthy, and only if
+          # nothing is already open. Resolve on the first healthy check while an
+          # incident is open. Threshold is >= 2 so a re-open cannot happen while
+          # the streak keeps climbing during an ongoing incident.
+          if [ "$STATUS" != "healthy" ] && [ "$STREAK" -ge 2 ] && [ "$OPEN" = "no" ]; then
             jq --arg started_at "$NOW" --arg status "$STATUS" \
               '. = [{started_at: $started_at, resolved_at: null, status: $status, note: "Automatically detected -- investigating."}] + .' \
               incidents.json > incidents.tmp.json && mv incidents.tmp.json incidents.json
-          elif [ "$STATUS" = "healthy" ] && [ "$PREV_STATUS" != "healthy" ]; then
+          elif [ "$STATUS" = "healthy" ] && [ "$OPEN" = "yes" ]; then
             jq --arg resolved_at "$NOW" \
               'if (length > 0 and .[0].resolved_at == null) then .[0].resolved_at = $resolved_at else . end' \
               incidents.json > incidents.tmp.json && mv incidents.tmp.json incidents.json
