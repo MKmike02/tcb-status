@@ -1,6 +1,6 @@
 {
   "status": "down",
-  "checked_at": "2026-09-19T14:07:49Z",
+  "checked_at": "2026-09-19T14:22:12Z",
   "http_code": 500,
-  "consecutive_unhealthy": 10
+  "consecutive_unhealthy": 11
 }
